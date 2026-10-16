@@ -1,3 +1,5 @@
+// Default local provider is sqlite. scripts/sync-prisma-provider.cjs copies this
+// file to schema.runtime.prisma and swaps provider to postgresql in production.
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")

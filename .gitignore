@@ -28,6 +28,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Generated Prisma schema (sqlite vs postgresql at generate time)
+apps/backend-esms/prisma/schema.runtime.prisma
+
 # Database & Cache
 *.sqlite
 *.sqlite-journal
