@@ -1,5 +1,14 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../db/prisma';
 import { DepartmentDTO, CountryDTO } from 'shared-types';
+
+type DepartmentWithCount = Prisma.DepartmentGetPayload<{
+  include: { _count: { select: { employees: true } } };
+}>;
+
+type CountryWithCount = Prisma.CountryGetPayload<{
+  include: { _count: { select: { employees: true } } };
+}>;
 
 export class MetadataService {
   async getDepartments(): Promise<DepartmentDTO[]> {
@@ -12,7 +21,7 @@ export class MetadataService {
       }
     });
 
-    return departments.map((d) => ({
+    return departments.map((d: DepartmentWithCount) => ({
       id: d.id,
       code: d.code,
       name: d.name,
@@ -30,7 +39,7 @@ export class MetadataService {
       }
     });
 
-    return countries.map((c) => ({
+    return countries.map((c: CountryWithCount) => ({
       id: c.id,
       code: c.code,
       name: c.name,

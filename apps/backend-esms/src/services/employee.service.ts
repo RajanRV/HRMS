@@ -1,5 +1,31 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../db/prisma';
 import { EmployeeFilterQuery, PaginatedResponse, EmployeeDTO, ExportEmployeeInput } from 'shared-types';
+
+type EmployeeListItem = Prisma.EmployeeGetPayload<{
+  include: {
+    department: true;
+    country: true;
+    salaries: { include: { deductionItems: true } };
+  };
+}>;
+
+type EmployeeDetail = Prisma.EmployeeGetPayload<{
+  include: {
+    department: true;
+    country: true;
+    salaries: { include: { deductionItems: true } };
+    salaryAuditLogs: true;
+  };
+}>;
+
+type EmployeeExportItem = Prisma.EmployeeGetPayload<{
+  include: {
+    department: true;
+    country: true;
+    salaries: true;
+  };
+}>;
 
 export class EmployeeService {
   async getEmployees(filter: EmployeeFilterQuery): Promise<PaginatedResponse<EmployeeDTO>> {
@@ -79,7 +105,7 @@ export class EmployeeService {
     ]);
 
     // 4. Format DTOs and calculate normalized USD amounts
-    const data: EmployeeDTO[] = rawEmployees.map((emp) => {
+    const data: EmployeeDTO[] = rawEmployees.map((emp: EmployeeListItem) => {
       const currentSal = emp.salaries[0];
       const rate = emp.country.exchangeRateToUSD;
 
@@ -219,7 +245,7 @@ export class EmployeeService {
           netSalaryUSD: Math.round(currentSal.netSalary * rate)
         }
         : null,
-      salaryAuditLogs: emp.salaryAuditLogs.map((log) => ({
+      salaryAuditLogs: emp.salaryAuditLogs.map((log: EmployeeDetail['salaryAuditLogs'][number]) => ({
         id: log.id,
         employeeId: log.employeeId,
         previousBase: log.previousBase,
@@ -299,7 +325,7 @@ export class EmployeeService {
       return `"${str}"`;
     };
 
-    const rows = employees.map((emp) => {
+    const rows = employees.map((emp: EmployeeExportItem) => {
       const currentSal = emp.salaries[0];
       const baseSalary = currentSal ? currentSal.baseSalary : 0;
       const lastUpdatedAt = emp.updatedAt ? emp.updatedAt.toISOString().replace('T', ' ').substring(0, 19) : '';
@@ -320,7 +346,7 @@ export class EmployeeService {
       ];
     });
 
-    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    return [headers.join(','), ...rows.map((r: string[]) => r.join(','))].join('\r\n');
   }
 }
 

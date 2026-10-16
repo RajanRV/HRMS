@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../db/prisma';
 import { UpdateSalaryInput, SalaryDTO } from 'shared-types';
 import { analyticsService } from './analytics.service';
@@ -7,7 +8,7 @@ export class SalaryService {
     const { baseSalary, bonus, deductions, deductionItems, currency, changeReason, changedBy } = input;
 
     // Execute atomic transaction: update current salary, insert new salary, insert audit log
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Verify employee exists and get country for USD conversion
       const employee = await tx.employee.findUnique({
         where: { id: employeeId },
